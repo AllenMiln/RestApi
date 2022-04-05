@@ -14,26 +14,46 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 @Transactional
 public class ExchangeRatesDaoImpl extends JdbcDaoSupport implements ExchangeRatesDao{
 
+    private final JdbcTemplate jdbcTemplate;
+
     @Autowired
-    public ExchangeRatesDaoImpl(DataSource dataSource) {
+    public ExchangeRatesDaoImpl(DataSource dataSource, JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
         this.setDataSource(dataSource);
     }
 
     public List<ExchangeRate> getAllExchangeRatesPerDay(String date) {
+        List<ExchangeRate> exchangeRates = new ArrayList<>();
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
 
-        return null;
+        try {
+            java.util.Date finalParsedDate = format.parse(date);
+            exchangeRates = jdbcTemplate.query("SELECT * FROM EXCHANGE_RATE WHERE DATE = ?",
+                    ps -> ps.setDate(1, new Date(finalParsedDate.getTime())),
+                    (rs, rowNum) -> ExchangeRate.builder()
+                            .numCode(rs.getString("NUM_CODE"))
+                            .charCode(rs.getString("CHAR_CODE"))
+                            .nominal(rs.getString("NOMINAL"))
+                            .name(rs.getString("NAME"))
+                            .value(rs.getString("VALUE"))
+                            .build()
+            );
+        } catch (ParseException e) {
+            e.getMessage();
+        }
+
+        return exchangeRates;
     }
 
     @Override
     public void saveExchangeRates(List<ExchangeRate> exchangeRates, String date) {
-        JdbcTemplate jdbcTemplate = getJdbcTemplate();
-
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
 
         try {

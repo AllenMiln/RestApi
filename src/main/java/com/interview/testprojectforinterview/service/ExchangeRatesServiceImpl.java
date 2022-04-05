@@ -37,7 +37,7 @@ public class ExchangeRatesServiceImpl implements ExchangeRatesService {
     public List<WebExchangeRate> getAllExchangeRatesPerDay(String date) {
 
         List<ExchangeRate> exchangeRatesPerDay = exchangeRatesDao.getAllExchangeRatesPerDay(date);
-        if (exchangeRatesPerDay == null) {
+        if (exchangeRatesPerDay.isEmpty()) {
             String exchangeRates = cbrRequester.getRatesAsXml(CBR_URL, date);
             exchangeRatesPerDay = exchangeRatesParser.parseExchangeRates(exchangeRates);
             exchangeRatesDao.saveExchangeRates(exchangeRatesPerDay, date);
